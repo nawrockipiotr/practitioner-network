@@ -13,8 +13,8 @@
     --surface: #ffffff;
     --ink: #1a1a1a;
     --ink-soft: #4a4a4a;
-    --ink-muted: #9a9a9a;
-    --line-idle: rgba(0, 0, 0, 0.06);
+    --ink-muted: #7a7a7a;
+    --line-idle: rgba(0, 0, 0, 0.08);
   }
 
   * { box-sizing: border-box; }
@@ -22,20 +22,26 @@
   html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
     background: transparent;
     color: var(--ink);
     font-family: "Titillium Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  body {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: stretch;
   }
 
   .stage {
     position: relative;
-    width: 740px;
-    height: 430px;
+    width: 100vw;
+    height: 100vh;
+    min-height: 360px;
     background: transparent;
     overflow: hidden;
   }
@@ -48,10 +54,10 @@
 
   .replay {
     position: absolute;
-    top: 14px;
+    top: 10px;
     left: 14px;
-    height: 32px;
-    padding: 0 12px;
+    height: 30px;
+    padding: 0 13px;
     border-radius: 16px;
     border: 1px solid var(--line-idle);
     background: var(--surface);
@@ -61,7 +67,7 @@
     align-items: center;
     gap: 6px;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     z-index: 10;
@@ -80,9 +86,9 @@
     border-radius: 10px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0,0,0,0.08);
     padding: 10px 12px;
-    font-size: 11.5px;
-    line-height: 1.45;
-    max-width: 310px;
+    font-size: 12px;
+    line-height: 1.42;
+    max-width: 340px;
     z-index: 20;
     opacity: 0;
     transform: translateY(2px);
@@ -96,22 +102,22 @@
     align-items: center;
     gap: 8px;
     font-weight: 700;
-    font-size: 12.5px;
+    font-size: 13px;
     margin-bottom: 6px;
     padding-bottom: 6px;
     border-bottom: 1px solid var(--line-idle);
   }
 
   .tooltip .tt-dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     flex-shrink: 0;
   }
 
   .tooltip .tt-count {
     margin-left: auto;
-    font-size: 10.5px;
+    font-size: 11px;
     color: var(--ink-muted);
     font-weight: 500;
   }
@@ -144,13 +150,11 @@
     vertical-align: 1px;
   }
 
-  @media (max-width: 760px) {
-    body { padding: 12px; }
+  @media (max-width: 880px) {
     .stage {
-      width: 100%;
-      max-width: 740px;
-      aspect-ratio: 740 / 430;
-      height: auto;
+      width: 100vw;
+      height: 100vh;
+      min-height: 360px;
     }
   }
 </style>
@@ -171,8 +175,8 @@
 
 <script>
 (() => {
-  const STAGE_W = 740;
-  const STAGE_H = 430;
+  const STAGE_W = 860;
+  const STAGE_H = 520;
 
   const countries = [
     { code: "AL", flag: "🇦🇱", name: "Albania" },
@@ -248,10 +252,7 @@
   const countryByCode = Object.fromEntries(countries.map(c => [c.code, c]));
   const catById = Object.fromEntries(categories.map(c => [c.id, c]));
 
-  countries.forEach(c => {
-    c.cats = [];
-    c.services = [];
-  });
+  countries.forEach(c => { c.cats = []; c.services = []; });
 
   serviceRows.forEach(([code, catId, service]) => {
     const c = countryByCode[code];
@@ -261,6 +262,7 @@
 
   const servicesByCategory = {};
   categories.forEach(cat => servicesByCategory[cat.id] = []);
+
   serviceRows.forEach(([code, catId, service]) => {
     servicesByCategory[catId].push({
       flag: countryByCode[code].flag,
@@ -283,23 +285,25 @@
   }
 
   const PADDING_TOP = 50;
-  const PADDING_BOTTOM = 24;
+  const PADDING_BOTTOM = 26;
 
-  const COUNTRY_LABEL_LEFT = 28;
-  const COUNTRY_X = 210;
+  const COUNTRY_LABEL_LEFT = 32;
+  const COUNTRY_X = 250;
 
-  const CATEGORY_X = STAGE_W - 210;
-  const CATEGORY_LABEL_RIGHT = STAGE_W - 28;
+  const CATEGORY_X = STAGE_W - 260;
+  const CATEGORY_LABEL_RIGHT = STAGE_W - 30;
 
-  const NODE_R_COUNTRY = 5;
-  const NODE_R_CATEGORY = 6;
+  const NODE_R_COUNTRY = 5.5;
+  const NODE_R_CATEGORY = 7;
 
   const countryNodes = [];
+
   {
     const n = countries.length;
-    const top = PADDING_TOP + 8;
-    const bot = STAGE_H - PADDING_BOTTOM - 8;
+    const top = PADDING_TOP + 10;
+    const bot = STAGE_H - PADDING_BOTTOM - 10;
     const step = (bot - top) / (n - 1);
+
     countries.forEach((c, i) => {
       countryNodes.push({
         ...c,
@@ -311,17 +315,19 @@
   }
 
   const categoryNodes = [];
+
   {
     const n = categories.length;
-    const top = PADDING_TOP + 42;
-    const bot = STAGE_H - PADDING_BOTTOM - 42;
+    const top = PADDING_TOP + 50;
+    const bot = STAGE_H - PADDING_BOTTOM - 50;
     const step = (bot - top) / (n - 1);
+
     categories.forEach((c, i) => {
       categoryNodes.push({
         ...c,
         x: CATEGORY_X,
         y: top + i * step,
-        revealAt: i * 1200
+        revealAt: i * 950
       });
     });
   }
@@ -329,24 +335,27 @@
   const nodeCatById = Object.fromEntries(categoryNodes.map(c => [c.id, c]));
 
   const links = [];
+
   countryNodes.forEach(cn => {
     cn.cats.forEach(catId => {
       const cat = nodeCatById[catId];
       const count = cn.services.filter(s => s.catId === catId).length;
+
       links.push({
         country: cn,
         cat,
         count,
-        lightAt: cat.revealAt + 100 + Math.random() * 450
+        lightAt: cat.revealAt + 80 + Math.random() * 360
       });
     });
   });
 
   const pulses = [];
-  const TOTAL_REVEAL_MS = (categoryNodes.length - 1) * 1200 + 1000;
+  const TOTAL_REVEAL_MS = (categoryNodes.length - 1) * 950 + 900;
 
   function bezier(p0, p1, p2, p3, t) {
     const u = 1 - t;
+
     return {
       x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
       y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y
@@ -356,9 +365,10 @@
   function linkPoints(link) {
     const a = link.country;
     const b = link.cat;
-    const ax = a.x + 7;
-    const bx = b.x - 7;
+    const ax = a.x + 8;
+    const bx = b.x - 8;
     const dx = bx - ax;
+
     return {
       p0: { x: ax, y: a.y },
       p1: { x: ax + dx * 0.55, y: a.y },
@@ -372,25 +382,26 @@
     const r = parseInt(h.slice(0, 2), 16);
     const g = parseInt(h.slice(2, 4), 16);
     const b = parseInt(h.slice(4, 6), 16);
+
     return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
   }
 
   function drawLink(link, lit, intensity, dim) {
     const { p0, p1, p2, p3 } = linkPoints(link);
     const dimMul = dim ? 0.12 : 1;
-    const focusMul = (hoverState.kind && !dim) ? 1.3 : 1;
+    const focusMul = (hoverState.kind && !dim) ? 1.35 : 1;
 
-    const widthBase = 0.75 + Math.min(link.count, 4) * 0.22;
+    const widthBase = 1.05 + Math.min(link.count, 4) * 0.32;
 
     ctx.beginPath();
     ctx.moveTo(p0.x, p0.y);
     ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
 
     if (lit) {
-      ctx.strokeStyle = withAlpha(link.cat.color, 0.55 * intensity * dimMul * focusMul);
-      ctx.lineWidth = widthBase * (focusMul > 1 ? 1.4 : 1);
-      ctx.shadowColor = withAlpha(link.cat.color, 0.6 * intensity * dimMul);
-      ctx.shadowBlur = dim ? 0 : 6;
+      ctx.strokeStyle = withAlpha(link.cat.color, 0.64 * intensity * dimMul * focusMul);
+      ctx.lineWidth = widthBase * (focusMul > 1 ? 1.35 : 1);
+      ctx.shadowColor = withAlpha(link.cat.color, 0.45 * intensity * dimMul);
+      ctx.shadowBlur = dim ? 0 : 4;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
@@ -398,11 +409,11 @@
       ctx.moveTo(p0.x, p0.y);
       ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
       ctx.strokeStyle = withAlpha(link.cat.color, 0.95 * intensity * dimMul * focusMul);
-      ctx.lineWidth = 0.45 * (focusMul > 1 ? 1.5 : 1);
+      ctx.lineWidth = 0.65 * (focusMul > 1 ? 1.4 : 1);
       ctx.stroke();
     } else {
-      ctx.strokeStyle = "rgba(0,0,0,0.05)";
-      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(0,0,0,0.06)";
+      ctx.lineWidth = 0.9;
       ctx.stroke();
     }
   }
@@ -412,23 +423,25 @@
     ctx.globalAlpha = alpha;
 
     ctx.beginPath();
-    ctx.arc(cn.x, cn.y, NODE_R_COUNTRY - 0.5, 0, Math.PI * 2);
+    ctx.arc(cn.x, cn.y, NODE_R_COUNTRY, 0, Math.PI * 2);
     ctx.fillStyle = "#1a1a1a";
     ctx.fill();
 
     ctx.fillStyle = "#1a1a1a";
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
-    ctx.font = "13px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.font = "15px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
     ctx.fillText(cn.flag, COUNTRY_LABEL_LEFT, cn.y);
 
-    ctx.font = "500 12px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-    ctx.fillText(cn.name, COUNTRY_LABEL_LEFT + 24, cn.y);
+    ctx.font = "600 13.5px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText(cn.name, COUNTRY_LABEL_LEFT + 26, cn.y);
 
     ctx.globalAlpha = 1;
   }
 
-  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
 
   function drawCategoryNode(cat, revealProgress, dim, focused) {
     if (revealProgress <= 0) return;
@@ -436,32 +449,34 @@
     const ease = easeOutCubic(Math.min(1, revealProgress));
     const baseAlpha = dim ? 0.3 : 1;
 
-    if (revealProgress < 1.6) {
+    if (revealProgress < 1.5) {
       ctx.globalAlpha = baseAlpha;
       ctx.beginPath();
-      ctx.arc(cat.x, cat.y, 7 + (1 - Math.min(1, revealProgress)) * 14, 0, Math.PI * 2);
-      ctx.strokeStyle = withAlpha(cat.color, 0.4 * (1 - Math.min(1, revealProgress)));
-      ctx.lineWidth = 2;
+      ctx.arc(cat.x, cat.y, 8 + (1 - Math.min(1, revealProgress)) * 14, 0, Math.PI * 2);
+      ctx.strokeStyle = withAlpha(cat.color, 0.42 * (1 - Math.min(1, revealProgress)));
+      ctx.lineWidth = 2.2;
       ctx.stroke();
     }
 
     if (focused) {
       ctx.globalAlpha = 1;
-      const r = NODE_R_CATEGORY + 4 + Math.sin(performance.now() * 0.006) * 1.5;
+      const r = NODE_R_CATEGORY + 5 + Math.sin(performance.now() * 0.006) * 1.5;
+
       ctx.beginPath();
       ctx.arc(cat.x, cat.y, r, 0, Math.PI * 2);
-      ctx.strokeStyle = withAlpha(cat.color, 0.5);
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = withAlpha(cat.color, 0.55);
+      ctx.lineWidth = 1.8;
       ctx.stroke();
     }
 
     ctx.globalAlpha = baseAlpha;
-    const nr = (focused ? NODE_R_CATEGORY + 1 : NODE_R_CATEGORY) * ease;
+    const nr = (focused ? NODE_R_CATEGORY + 1.2 : NODE_R_CATEGORY) * ease;
+
     ctx.beginPath();
     ctx.arc(cat.x, cat.y, nr, 0, Math.PI * 2);
     ctx.fillStyle = cat.color;
-    ctx.shadowColor = withAlpha(cat.color, 0.6);
-    ctx.shadowBlur = dim ? 0 : 8;
+    ctx.shadowColor = withAlpha(cat.color, 0.55);
+    ctx.shadowBlur = dim ? 0 : 7;
     ctx.fill();
     ctx.shadowBlur = 0;
 
@@ -469,12 +484,12 @@
     ctx.fillStyle = "#1a1a1a";
     ctx.textBaseline = "middle";
     ctx.textAlign = "right";
-    ctx.font = "700 13px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-    ctx.fillText(cat.label, CATEGORY_LABEL_RIGHT, cat.y - 7);
+    ctx.font = "800 14.5px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText(cat.label, CATEGORY_LABEL_RIGHT, cat.y - 8);
 
-    ctx.fillStyle = "#7a7a7a";
-    ctx.font = "11px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-    ctx.fillText(cat.services + " services", CATEGORY_LABEL_RIGHT, cat.y + 7);
+    ctx.fillStyle = "#6e6e6e";
+    ctx.font = "600 12px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText(cat.services + " services", CATEGORY_LABEL_RIGHT, cat.y + 9);
     ctx.globalAlpha = 1;
   }
 
@@ -486,54 +501,56 @@
     for (let i = 6; i >= 1; i--) {
       const tt = Math.max(0, p.t - i * 0.028);
       const tp = bezier(pts.p0, pts.p1, pts.p2, pts.p3, tt);
+
       ctx.beginPath();
-      ctx.arc(tp.x, tp.y, 2.2 - i * 0.18, 0, Math.PI * 2);
-      ctx.fillStyle = withAlpha(color, 0.08 * (7 - i));
+      ctx.arc(tp.x, tp.y, 2.3 - i * 0.18, 0, Math.PI * 2);
+      ctx.fillStyle = withAlpha(color, 0.09 * (7 - i));
       ctx.fill();
     }
 
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
-    ctx.fillStyle = withAlpha(color, 0.2);
+    ctx.fillStyle = withAlpha(color, 0.22);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+    ctx.arc(pos.x, pos.y, 4.2, 0, Math.PI * 2);
     ctx.shadowColor = color;
-    ctx.shadowBlur = 14;
+    ctx.shadowBlur = 12;
     ctx.fillStyle = "#ffffff";
     ctx.fill();
     ctx.shadowBlur = 0;
 
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 2.6, 0, Math.PI * 2);
+    ctx.arc(pos.x, pos.y, 2.7, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
   }
 
   function drawHeaders() {
-    const y = 30;
-    ctx.fillStyle = "#7a7a7a";
+    const y = 25;
+    ctx.fillStyle = "#666";
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
-    ctx.font = "600 10px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-    const countriesX = COUNTRY_LABEL_LEFT + 92;
+    ctx.font = "700 11px 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
+    const countriesX = COUNTRY_LABEL_LEFT + 96;
     ctx.fillText("COUNTRIES", countriesX, y);
 
     ctx.beginPath();
     ctx.moveTo(countriesX, y + 10);
-    ctx.lineTo(countriesX + 28, y + 10);
+    ctx.lineTo(countriesX + 34, y + 10);
     ctx.strokeStyle = "#1a1a1a";
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    const categoriesX = CATEGORY_LABEL_RIGHT - 56;
+    const categoriesX = CATEGORY_LABEL_RIGHT - 64;
     ctx.textAlign = "right";
-    ctx.fillStyle = "#7a7a7a";
+    ctx.fillStyle = "#666";
     ctx.fillText("SECTORS", categoriesX, y);
 
     ctx.beginPath();
-    ctx.moveTo(categoriesX - 28, y + 10);
+    ctx.moveTo(categoriesX - 34, y + 10);
     ctx.lineTo(categoriesX, y + 10);
     ctx.stroke();
   }
@@ -543,12 +560,19 @@
 
   function spawnPulse() {
     if (!links.length) return;
+
     const link = links[Math.floor(Math.random() * links.length)];
-    pulses.push({ link, t: 0, speed: 0.4 + Math.random() * 0.5 });
+
+    pulses.push({
+      link,
+      t: 0,
+      speed: 0.45 + Math.random() * 0.45
+    });
   }
 
   function frame(now) {
     if (!startTime) startTime = now;
+
     const elapsed = now - startTime;
     const dt = Math.min(50, now - (frame._last || now)) / 1000;
     frame._last = now;
@@ -562,6 +586,7 @@
     if (hoverState.kind === "country") {
       const cn = hoverState.target;
       focusedCountries.add(cn);
+
       links.forEach(l => {
         if (l.country === cn) {
           focusedLinks.add(l);
@@ -571,6 +596,7 @@
     } else if (hoverState.kind === "category") {
       const cat = hoverState.target;
       focusedCategories.add(cat);
+
       links.forEach(l => {
         if (l.cat === cat) {
           focusedLinks.add(l);
@@ -590,10 +616,11 @@
     drawOrder.forEach(l => {
       const since = elapsed - l.lightAt;
       const dim = hasHover && !focusedLinks.has(l);
+
       if (since < 0) {
         drawLink(l, false, 0, dim);
       } else {
-        drawLink(l, true, Math.min(1, since / 600), dim);
+        drawLink(l, true, Math.min(1, since / 520), dim);
       }
     });
 
@@ -603,7 +630,8 @@
 
     categoryNodes.forEach(cat => {
       const since = elapsed - cat.revealAt;
-      const progress = since / 400;
+      const progress = since / 360;
+
       drawCategoryNode(
         cat,
         progress,
@@ -613,20 +641,22 @@
     });
 
     if (elapsed > TOTAL_REVEAL_MS) {
-      if (now - lastPulseSpawn > 180) {
-        if (Math.random() < 0.7) spawnPulse();
+      if (now - lastPulseSpawn > 170) {
+        if (Math.random() < 0.75) spawnPulse();
         lastPulseSpawn = now;
       }
-      if (Math.random() < 0.005) spawnPulse();
+
+      if (Math.random() < 0.006) spawnPulse();
     } else {
       categoryNodes.forEach(cat => {
-        if (elapsed > cat.revealAt + 300 && Math.random() < 0.04) {
+        if (elapsed > cat.revealAt + 220 && Math.random() < 0.05) {
           const linkSet = links.filter(l => l.cat === cat);
+
           if (linkSet.length) {
             pulses.push({
               link: linkSet[Math.floor(Math.random() * linkSet.length)],
               t: 0,
-              speed: 0.5 + Math.random() * 0.4
+              speed: 0.52 + Math.random() * 0.4
             });
           }
         }
@@ -636,10 +666,12 @@
     for (let i = pulses.length - 1; i >= 0; i--) {
       const p = pulses[i];
       p.t += p.speed * dt;
+
       if (p.t >= 1) {
         pulses.splice(i, 1);
         continue;
       }
+
       drawPulse(p);
     }
 
@@ -650,47 +682,84 @@
   document.getElementById("replay").addEventListener("click", () => {
     startTime = null;
     pulses.length = 0;
+
     links.forEach(l => {
-      l.lightAt = l.cat.revealAt + 100 + Math.random() * 450;
+      l.lightAt = l.cat.revealAt + 80 + Math.random() * 360;
     });
   });
 
-  const hoverState = { kind: null, target: null };
+  const hoverState = {
+    kind: null,
+    target: null
+  };
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
     }[c]));
   }
 
   function getCanvasScale() {
     const rect = canvas.getBoundingClientRect();
-    return { sx: rect.width / STAGE_W, sy: rect.height / STAGE_H, rect };
+
+    return {
+      sx: rect.width / STAGE_W,
+      sy: rect.height / STAGE_H,
+      rect
+    };
   }
 
   function pickNode(mouseX, mouseY) {
-    const countryHitRight = COUNTRY_X + 10;
+    const countryHitRight = COUNTRY_X + 12;
     const countryHitLeft = COUNTRY_LABEL_LEFT - 4;
 
     if (mouseX >= countryHitLeft && mouseX <= countryHitRight) {
-      let best = null, bestD = Infinity;
+      let best = null;
+      let bestD = Infinity;
+
       countryNodes.forEach(cn => {
         const d = Math.abs(cn.y - mouseY);
-        if (d < bestD) { bestD = d; best = cn; }
+
+        if (d < bestD) {
+          bestD = d;
+          best = cn;
+        }
       });
-      if (best && bestD < 13) return { kind: "country", target: best };
+
+      if (best && bestD < 15) {
+        return {
+          kind: "country",
+          target: best
+        };
+      }
     }
 
-    const categoryHitLeft = CATEGORY_X - 10;
+    const categoryHitLeft = CATEGORY_X - 12;
     const categoryHitRight = CATEGORY_LABEL_RIGHT + 4;
 
     if (mouseX >= categoryHitLeft && mouseX <= categoryHitRight) {
-      let best = null, bestD = Infinity;
+      let best = null;
+      let bestD = Infinity;
+
       categoryNodes.forEach(cat => {
         const d = Math.abs(cat.y - mouseY);
-        if (d < bestD) { bestD = d; best = cat; }
+
+        if (d < bestD) {
+          bestD = d;
+          best = cat;
+        }
       });
-      if (best && bestD < 18) return { kind: "category", target: best };
+
+      if (best && bestD < 22) {
+        return {
+          kind: "category",
+          target: best
+        };
+      }
     }
 
     return null;
@@ -699,8 +768,11 @@
   function buildCountryTooltip(cn) {
     const items = cn.services.map(p => {
       const cat = catById[p.catId];
+
       return '<li><span class="tt-name">' + escapeHtml(p.service) + '</span>' +
-             '<span class="tt-pill" style="background:' + cat.color + '">' + escapeHtml(cat.label) + '</span></li>';
+             '<span class="tt-pill" style="background:' + cat.color + '">' +
+             escapeHtml(cat.label) +
+             '</span></li>';
     }).join("");
 
     return '<div class="tt-head"><span style="font-size:14px">' + cn.flag + '</span>' +
@@ -711,8 +783,11 @@
 
   function buildCategoryTooltip(cat) {
     const list = servicesByCategory[cat.id] || [];
-    const items = list.map(p => '<li><span style="font-size:13px">' + p.flag + '</span> ' +
-      '<span class="tt-name">' + escapeHtml(p.service) + '</span></li>').join("");
+
+    const items = list.map(p => {
+      return '<li><span style="font-size:13px">' + p.flag + '</span> ' +
+             '<span class="tt-name">' + escapeHtml(p.service) + '</span></li>';
+    }).join("");
 
     return '<div class="tt-head"><span class="tt-dot" style="background:' + cat.color + '"></span>' +
            '<span>' + escapeHtml(cat.full) + '</span>' +
@@ -734,10 +809,21 @@
     let left = px + 14;
     let top = py - ttH - 12;
 
-    if (left + ttW > stageRect.width - 8) left = px - ttW - 14;
-    if (left < 8) left = 8;
-    if (top < 8) top = py + 14;
-    if (top + ttH > stageRect.height - 8) top = stageRect.height - ttH - 8;
+    if (left + ttW > stageRect.width - 8) {
+      left = px - ttW - 14;
+    }
+
+    if (left < 8) {
+      left = 8;
+    }
+
+    if (top < 8) {
+      top = py + 14;
+    }
+
+    if (top + ttH > stageRect.height - 8) {
+      top = stageRect.height - ttH - 8;
+    }
 
     tooltip.style.left = left + "px";
     tooltip.style.top = top + "px";
@@ -773,6 +859,7 @@
   }
 
   stageEl.addEventListener("mousemove", e => updateHover(e.clientX, e.clientY));
+
   stageEl.addEventListener("mouseleave", () => {
     hoverState.kind = null;
     hoverState.target = null;
